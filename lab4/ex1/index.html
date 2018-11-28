@@ -1,0 +1,50 @@
+<head>
+<!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src"main.js"></script>
+    <script>
+        $(document).ready(() => {
+            console.log('works');
+            var input = document.getElementById('file-upload');
+            var reader = new FileReader();
+            var trace1 = {
+                x: [],
+                y: [],
+                mode: 'lines+markers'
+            };
+            $('#plot-button').on('click', () => {
+                // console.log(input.files[0]);
+                var file = input.files[0];
+                reader.readAsText(file);
+                reader.onload = () => {
+                    var text = reader.result;
+                    var arr = text.split("\n");
+                    let tmp;
+                    for (let pair of arr) {
+                        tmp = pair.split(" ");
+                        trace1.x.push(tmp[0]);
+                        trace1.y.push(tmp[1]);
+                    }
+                    console.log(data);
+
+                    var data = [trace1];
+                    var layout = {
+                        title: 'Simple graph'
+                    };
+
+                    Plotly.newPlot('div1', data, layout);
+                }
+            })
+        })
+    </script>
+</head>
+
+<body>
+
+    <div id="div1"></div>
+    <div id="div2"></div>
+
+    <input id="file-upload" type="file">
+    <button id="plot-button" type="button">Plot it!</button>
+</body>
