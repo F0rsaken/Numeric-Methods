@@ -25,6 +25,35 @@ double Polynomial2::f(double x) {
     return retVal;
 }
 
+PolynomialFunction::PolynomialFunction() {}
+
+PolynomialFunction::PolynomialFunction(int size) {
+    this->factors = new double[size];
+    this->size = size;
+}
+
+PolynomialFunction::PolynomialFunction(int size, double *points) {
+    this->size = size;
+    this->factors = points;
+}
+
+PolynomialFunction::~PolynomialFunction() {
+    delete[] this->factors;
+}
+
+double PolynomialFunction::f(double x) {
+    if (this->size <= 0) {
+        return 0;
+    }
+
+    double retVal = this->factors[0];
+    for (int i = 1; i < this->size; i++) {
+        retVal += (this->factors[i] * pow(x, i));
+    }
+
+    return retVal;
+}
+
 Polynomial * cubicSplines(Point *data, int n, int boundaryType) {
     // hi = xi - xi-1
     double *h = new double[n-1];
@@ -100,4 +129,50 @@ Polynomial2 * quadraticSplines(Point *data, int n) {
     delete[] D;
 
     return retSplines;
+}
+
+PolynomialFunction polynomialRegression(Point *data, int n) {
+    int xSize = (2*n) - 1;
+    double *xCountedValues = new double[xSize];
+    xCountedValues[0] = 1;
+    // robimy tablice, aby przyspieszyć liczenie
+    for (int i = 1; i < xSize; i++) {
+        xCountedValues[i] = 0;
+        for (int j = 0; j < n; j++) {
+            xCountedValues[i] =pow(data[j].x, i);
+        }
+    }
+
+    double **aMatrix = new double*[n];
+    for (int i = 0; i < n; i++) { aMatrix[i] = new double[n]; }
+
+    for (int j = 0; j < n; j++) {
+        for (int i = j; i < j+n; i++) {
+            aMatrix[j][i] = xCountedValues[i];
+        }
+    }
+    aMatrix[0][0] = n;
+    double *bVector = new double[n];
+    // bVector[0] = 0;
+    for (int i = 0; i < n; i++) {
+        bVector[i] = 0;
+        for (int j = 0; j < n; i++) {
+            bVector[i] += (data[j].y * pow(data[j].x, (double)j));
+        }
+    }
+
+    double *initVector = new double[n];
+    for (int i = 0; i < n; i++) { initVector[i] = 0; }
+    double *xVector = SORAlgorithm(n, aMatrix, initVector, bVector, 0.01, 1, 1);
+
+    PolynomialFunction aproximation = PolynomialFunction(n, xVector);
+
+    for (int i = 0; i < n; i++) {
+        delete[] aMatrix[i];
+    }
+    delete[] aMatrix;
+    delete[] xCountedValues;
+    delete[] bVector;
+
+    return aproximation;
 }

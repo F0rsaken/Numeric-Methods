@@ -37,8 +37,22 @@ public:
     double f(double x);
 };
 
+class PolynomialFunction {
+public:
+    double *factors;
+    int size;
+
+    PolynomialFunction();
+    PolynomialFunction(int size);
+    PolynomialFunction(int size, double *points);
+    ~PolynomialFunction();
+
+    double f(double x);
+};
+
 // functions
 Polynomial * cubicSplines(Point *data, int n, int boundaryType);
 Polynomial2 * quadraticSplines(Point *data, int n);
+PolynomialFunction polynomialRegression(Point *data, int n);
 
 #endif
