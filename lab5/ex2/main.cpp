@@ -9,26 +9,26 @@ using namespace std;
 double step = 0.1;
 
 Point * getDataPoints(int n) {
-
+    
 }
 
 int main(int argc, char const *argv[]) {
-    if (argc != 3) {
+    if (argc != 2) {
         cout << "Zła liczba argumentów!\n";
         return 1;
     }
 
     // int printMode = atoi(argv[1]); // 0 - cout, 1 - do pliku
-    int boundaryType = atoi(argv[1]); // 0 - lagrange, 1 - Newton
-    int n = atoi(argv[2]);
+    // int boundaryType = atoi(argv[1]); // 0 - lagrange, 1 - Newton
+    int n = atoi(argv[1]);
     
-    if (boundaryType != 0 && boundaryType != 1) {
-        cout << "Zła wartość pierwszego argumentu!\n";
-        return 1;
-    }
+    // if (boundaryType != 0 && boundaryType != 1) {
+        // cout << "Zła wartość pierwszego argumentu!\n";
+        // return 1;
+    // }
 
     Point *data = getDataPoints(n);
-    Polynomial *splines = cubicSplines(data, n, boundaryType);
+    Polynomial2 *splines = quadraticSplines(data, n);
     
     // int outN = ((data[n - 1].x - data[0].x) / step) + 1;
     // cout << "OutN: " << outN << endl;
