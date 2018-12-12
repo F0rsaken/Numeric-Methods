@@ -1,5 +1,7 @@
 #ifndef INTERPOL_LIB_H
 #define INTERPOL_LIB_H
+#include <string>
+using namespace std;
 
 class Point {
 public:
@@ -37,8 +39,31 @@ public:
     double f(double x);
 };
 
+class PolynomialFunction {
+public:
+    double *factors;
+    int size;
+
+    PolynomialFunction();
+    PolynomialFunction(int size);
+    PolynomialFunction(int size, double *points);
+    ~PolynomialFunction();
+
+    double f(double x);
+};
+
+void sendPlotToFile(Point data[], int n, string fileName, bool informUser = false);
+
 // functions
-Polynomial * cubicSplines(Point *data, int n, int boundaryType);
+double useLagrange(Point data[], int n, double xi);
+double useNewton(Point data[], int n, double x, double *diffTable[]);
+void fillNewtonDiffTable(int n, Point data[], double *diffTable[]);
+Polynomial *cubicSplines(Point *data, int n, int boundaryType);
 Polynomial2 * quadraticSplines(Point *data, int n);
+PolynomialFunction polynomialRegression(Point *data, int n);
+
+// aproksymacje
+double ** countFactorsForTrygonometricApproximation(Point * dataPoints, int n);
+double trygonometricApproximation(double *factorsTable[], int n, Point * dataPoints, double x);
 
 #endif

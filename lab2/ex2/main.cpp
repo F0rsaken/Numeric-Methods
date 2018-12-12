@@ -7,7 +7,7 @@ using namespace std;
 const double xTab[] = {1.0, -1.0};
 double **mainMatrix;
 int n;
-double ro = 0.0001;
+double ro = 0.01;
 
 // algorytm jest zbieżny dla promienia spektralnego macierzy D^-1(L + U) < 1
 

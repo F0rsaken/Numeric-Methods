@@ -6,7 +6,7 @@ using namespace std;
 
 const double xTab[] = {1.0, -1.0};
 double **mainMatrix, *vectorX, *vectorB, *countedSolution;
-double ro = 0.01;
+double ro = 0.001;
 double omega = 1.5;
 int n;
 
