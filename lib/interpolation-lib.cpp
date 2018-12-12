@@ -1,6 +1,10 @@
 #include <cmath>
+#include <string>
+#include <iostream>
+#include <fstream>
 #include "interpolation-lib.h"
 #include "matrix-lib.h"
+using namespace std;
 
 Polynomial::Polynomial(double a, double b, double c, double d) {
     this->a = a;
@@ -53,6 +57,60 @@ double PolynomialFunction::f(double x) {
 
     return retVal;
 }
+
+void sendPlotToFile(Point data[], int n, string fileName, bool informUser) {
+    // cout << "Interpolacja: \n";
+    ofstream outputFile;
+    outputFile.open(fileName, ios::trunc);
+    for(int i = 0; i < n; i++) {
+        outputFile << data[i].x << " " << data[i].y << endl;
+    }
+    outputFile.close();
+    if (informUser) cout << "Skończono pisać do pliku " << fileName << endl;
+}
+
+double useLagrange(Point data[], int n, double xi) {
+    double retVal = 0, upper, lower, li;
+    for (int i = 0; i < n; i++) {
+
+        upper = 1, lower = 1;
+        for (int j = 0; j < n; j++) {
+            if (j != i) {
+                upper = upper * (xi - data[j].x);
+                lower = lower * (data[i].x - data[j].x);
+            }
+        }
+        li = upper/lower;
+        retVal += (data[i].y * li);
+    }
+    return retVal;
+}
+
+double useNewton(Point data[], int n, double x, double *diffTable[]) {
+    double retVal = diffTable[0][0];
+    double ni;
+
+    for (int i = 1; i < n; i++) {
+        ni = 1;
+        for (int j = 0; j < i; j++) {
+            ni = ni * (x-data[j].x);
+        }
+        retVal += diffTable[0][i] * ni;
+    }
+
+    return retVal;
+}
+
+void fillNewtonDiffTable(int n, Point data[], double *diffTable[]) {
+    for (int i = 0; i < n; i++) { diffTable[i][0] = data[i].y; }
+
+    for (int i = 1; i < n; i++) {
+        for (int j = 0; j < n-1; j++) {
+            diffTable[j][i] = diffTable[j+1][i-1] - diffTable[j][i-1];
+        }
+    }
+}
+
 
 Polynomial * cubicSplines(Point *data, int n, int boundaryType) {
     // hi = xi - xi-1
@@ -163,7 +221,7 @@ PolynomialFunction polynomialRegression(Point *data, int n) {
 
     double *initVector = new double[n];
     for (int i = 0; i < n; i++) { initVector[i] = 0; }
-    double *xVector = SORAlgorithm(n, aMatrix, initVector, bVector, 0.01, 1, 1);
+    double *xVector = SORAlgorithm(n, (const double**)aMatrix, initVector, bVector, 0.01, 1, 1);
 
     PolynomialFunction aproximation = PolynomialFunction(n, xVector);
 
@@ -175,4 +233,42 @@ PolynomialFunction polynomialRegression(Point *data, int n) {
     delete[] bVector;
 
     return aproximation;
+}
+
+double ** countFactorsForTrygonometricApproximation(Point *dataPoints, int n) {
+    double **factorsTable = new double*[2];
+    factorsTable[0] = new double[n];
+    factorsTable[1] = new double[n];
+
+    for (int i = 0; i < n; i++) {
+        // coś * 2 i potem przez n
+        factorsTable[0][i] = 0; factorsTable[1][i] = 0;
+        for (int j = 0; j <= i; j++) {
+            // punkt a
+            factorsTable[0][i] += ( dataPoints[j].y * cos( i*dataPoints[j].x ) );
+            // punkt b
+            factorsTable[1][i] += ( dataPoints[j].y * sin( i*dataPoints[j].x ) );
+        }
+        factorsTable[0][i] *= 2; factorsTable[1][i] *= 2;
+
+        factorsTable[0][i] /= n; factorsTable[1][i] /= n;
+    }
+
+    return factorsTable;
+}
+
+double trygonometricApproximation(double *factorsTable[], int n, Point *dataPoints, double x) {
+    double *aFactors = factorsTable[0];
+    double *bFactors = factorsTable[1];
+    double outVal = aFactors[0]/2;
+
+    double aSum = 0;
+    double bSum = 0;
+    for (int i = 1; i < n; i++) {
+        aSum += (aFactors[i] * cos(i * x));
+        bSum += (bFactors[i] * sin(i * x));
+    }
+    outVal += aSum + bSum;
+
+    return outVal;
 }

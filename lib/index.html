@@ -6,14 +6,20 @@
     <script>
         $(document).ready(() => {
             console.log('works');
+            let counter = 0;
             var input = document.getElementById('file-upload');
+            var plotPlace = document.getElementById('div1');
             var reader = new FileReader();
-            var trace1 = {
-                x: [],
-                y: [],
-                mode: 'lines+markers'
+            var allTraces = [];
+            var layout = {
+                xaxis: { title: 'X' },
+                yaxis: { title: 'Y' },
+                title: 'Simple graph'
             };
+
             $('#plot-button').on('click', () => {
+                counter++;
+                let trace = { x: [], y: [], mode: 'lines+markers' };
                 // console.log(input.files[0]);
                 var file = input.files[0];
                 reader.readAsText(file);
@@ -23,21 +29,37 @@
                     let tmp;
                     for (let pair of arr) {
                         tmp = pair.split(" ");
-                        trace1.x.push(tmp[0]);
-                        trace1.y.push(tmp[1]);
+                        trace.x.push(tmp[0]);
+                        trace.y.push(tmp[1]);
                     }
-                    console.log(data);
+                    allTraces.push(trace);
 
-                    var data = [trace1];
-                    var layout = {
-                        title: 'Simple graph'
-                    };
+                    // console.log(data);
+                    var data = [trace];
 
-                    Plotly.newPlot('div1', data, layout);
+                    Plotly.plot(plotPlace, data, layout);
+                    console.log(Plotly);
                 }
+            })
+
+            $('#reset-button').on('click', () => {
+                Plotly.purge(plotPlace);
             })
         })
     </script>
+    <style>
+        g.g-ytitle>text.ytitle { transform: rotate(0); }
+        .my-button {
+            -webkit-appearance: none;
+            appearance: none;
+            background-color: #424a92;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            padding: 5px 10px;
+        }
+    </style>
 </head>
 
 <body>
@@ -46,5 +68,6 @@
     <div id="div2"></div>
 
     <input id="file-upload" type="file">
-    <button id="plot-button" type="button">Plot it!</button>
+    <button id="plot-button" type="button" class="my-button">Plot it!</button>
+    <button id="reset-button" type="button" class="my-button">Reset graph!</button>
 </body>

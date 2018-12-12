@@ -1,6 +1,6 @@
 MAIN_FILE=main
 LIB_PATH=../../lib/
-LIB_NAME=matrix-lib
+LIB_NAME=equations-lib
 
 all: main
 
