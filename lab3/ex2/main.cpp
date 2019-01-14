@@ -17,7 +17,7 @@ int main(int argc, char const *argv[])
         // cout << "Błąd! Nie potrzeba argumentów\nWszystkie argumenty będą zignorowane" << endl;
     }
 
-    int stopCriterium = atoi(argv[1]);
+    int stopCriterium = atoi(argv[1]); // 1 lub 2
 
     FunctionOf3 *fVector = new FunctionOf3[3];
     fVector[0].setF( [](double x1, double x2, double x3) { return pow(x1, 2) + pow(x2, 2) + x3 - 1; } );
@@ -39,7 +39,7 @@ int main(int argc, char const *argv[])
     jacobianMatrix[2][1].setF( [](double x) { return 1.0; } );
     jacobianMatrix[2][2].setF( [](double x) { return 1.0; } );
 
-    double initVector[3] = {1, 1, 1};
+    double initVector[3] = {2, 2, 2};
     double * solution = newtonEquationsSystem(fVector, jacobianMatrix, initVector, stopCriterium, ro);
     cout << "Rozwiązanie x1 = " << solution[0] << ", x2 = " << solution[1] << ", x3 = " << solution[2] << endl;
 

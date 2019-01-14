@@ -34,8 +34,8 @@ double newtonMethod (double x0, double f(double), double fPrim(double), int stop
             if ( fabs(xk - x0) < ro ) {
                 stop = true;
             }
-        } else {
-            if ( fabs(f(x0)) < ro ) {
+        } else if (stopCriterium == 2) {
+            if ( fabs(f(xk)) < ro ) {
                 stop = true;
             }
         }
@@ -65,8 +65,8 @@ double eulerMethod(double a, double b, double f(double), int stopCriterium, doub
             if ( fabs(xn - x0) < ro ) {
                 stop = true;
             }
-        } else {
-            if ( fabs(f(x0)) < ro ) {
+        } else if (stopCriterium == 2) {
+            if ( fabs(f(xn)) < ro ) {
                 stop = true;
             }
         }
@@ -127,7 +127,7 @@ double *newtonEquationsSystem(FunctionOf3 fVector[], FunctionOf1 *jacobianMatrix
             }
             cout << vectorEuclideanNorm( tmpVector, 3 ) << endl;
             delete[] tmpVector;
-        } else {
+        } else if (stopCriterium == 2) {
             if ( vectorEuclideanNorm(fVectorValues, 3) < ro ) {
                 stop = true;
             } else {
