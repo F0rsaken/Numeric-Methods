@@ -6,9 +6,9 @@
 #include <math.h>
 #include <tgmath.h>
 #include <fstream>
+#include <string>
 #include "../../lib/interpolation-lib.h"
 #include "../../lib/matrix-lib.h"
-#include <string>
 using namespace std;
 
 double step = 0.2;
@@ -19,6 +19,9 @@ double b = 2 * M_PI;
 // y = e^(-3( sin(x) ))
 double fX(double x) {
     return exp( -3 * sin(x) );
+}
+double fPrimX(double x) {
+    return -3 * exp(-3 * sin(x)) * cos(x);
 }
 
 void drawOriginalPlot() {
@@ -60,42 +63,41 @@ Point* getDataPoints(Point data[], int n, bool czebyszew) {
     return data;
 }
 
+double* getDerivatives(Point data[], int n) {
+    double * retTab = new double[n];
+
+    for (int i = 0; i < n; i++) {
+        retTab[i] = fPrimX(data[i].x);
+    }
+
+    return retTab;
+}
+
 /** 
  * Argumenty:
- *  0 | 1 - metoda Lagrange'a | Newton
  *  0 | 1 - rozłożenie punktów: równoodległe | zera Czybyszewa
  *  n - ilość punktow
 */
 
 int main(int argc, char *argv[]) {
-    if (argc != 4) {
+    if (argc != 3) {
         cout << "Zła liczba argumentów!\n";
         return 1;
     }
 
     // parsowanie argumentów
-    int calcMode = atoi(argv[1]); // 0 - lagrange, 1 - Newton
-    int pointsMode = atoi(argv[2]); // 0 - rownoodlegle, 1 - zera Czebyszewa
-    int n = atoi(argv[3]);
+    int pointsMode = atoi(argv[1]); // 0 - rownoodlegle, 1 - zera Czebyszewa
+    int n = atoi(argv[2]);
 
     bool lagrange = false;
     bool czebyszew = false;
-    
-    if (calcMode == 0) {
-        lagrange = true;
-    } else if (calcMode == 1) {
-        lagrange = false;
-    } else {
-        cout << "Zła wartość pierwszego argumentu!\n";
-        return 1;
-    }
 
     if (pointsMode == 0) {
         czebyszew = false;
     } else if (pointsMode == 1) {
         czebyszew = true;
     } else {
-        cout << "Zła wartość drugiego argumentu!\n";
+        cout << "Zła wartość pierwszego argumentu!\n";
         return 1;
     }
 
@@ -107,33 +109,29 @@ int main(int argc, char *argv[]) {
         cout << "x: " << data[i].x << ", y: " << data[i].y << endl;
     }
 
+    double *derivatives = getDerivatives(data, n);
+
+    // tabela x do przedstawienia wykresu do interpolacji
     double xi = data[0].x;
     int outN = fabs((data[n-1].x - data[0].x)/step) + 1;
     cout << "OutN: " << outN << endl;
     Point *interpolation = new Point[outN];
+
     double **forwardDiffTable;
 
-    if (lagrange) {
-        for (int i = 0; i < outN-1; xi += step, i++) {
-            interpolation[i].x = xi;
-            interpolation[i].y = useLagrange(data, n, xi);
-        }
-        interpolation[outN-1].x = data[n-1].x;
-        interpolation[outN-1].y = useLagrange(data, n, b);
-    } else {
-        // stwórz tablice
-        forwardDiffTable = new double*[n];
-        for (int i = 0; i < n; i++) { forwardDiffTable[i] = new double[n]; }
-        // wypełnij tablice
-        fillNewtonDiffTable(n, data, forwardDiffTable);
+    // stwórz tablice
+    forwardDiffTable = new double*[2*n];
+    for (int i = 0; i < 2*n; i++) { forwardDiffTable[i] = new double[(2*n)+1]; }
+    // // wypełnij tablice
+    fillHermitDiffTable(n, data, forwardDiffTable, derivatives);
 
-        for (int i = 0; i < outN; xi += step, i++) {
-            interpolation[i].x = xi;
-            interpolation[i].y = useNewton(data, n, xi, forwardDiffTable);
-        }
-        interpolation[outN-1].x = data[n-1].x;
-        interpolation[outN-1].y = useNewton(data, n, b, forwardDiffTable);
+    for (int i = 0; i < outN; xi += step, i++) {
+        interpolation[i].x = xi;
+        interpolation[i].y = useHermit(data, n, xi, forwardDiffTable);
     }
+    interpolation[outN-1].x = data[n-1].x;
+    interpolation[outN-1].y = useHermit(data, n, b, forwardDiffTable);
+
 
     drawOriginalPlot();
 

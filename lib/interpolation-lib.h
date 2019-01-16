@@ -57,7 +57,9 @@ void sendPlotToFile(Point data[], int n, string fileName, bool informUser = fals
 // functions
 double useLagrange(Point data[], int n, double xi);
 double useNewton(Point data[], int n, double x, double *diffTable[]);
+double useHermit(Point data[], int n, double x, double *diffTable[]);
 void fillNewtonDiffTable(int n, Point data[], double *diffTable[]);
+void fillHermitDiffTable(int n, Point data[], double *diffTable[], double derivatives[]);
 Polynomial *cubicSplines(Point *data, int n, int boundaryType);
 Polynomial2 * quadraticSplines(Point *data, int n);
 PolynomialFunction polynomialRegression(Point *data, int n);

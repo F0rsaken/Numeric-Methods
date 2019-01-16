@@ -2,13 +2,18 @@
 <!-- Plotly.js -->
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <script src"main.js"></script>
+    <!-- <script src"main.js"></script> -->
     <script>
         $(document).ready(() => {
             console.log('works');
             let counter = 0;
+            let mainTraceActive = false;
+
             var input = document.getElementById('file-upload');
+            var mainInput = document.getElementById('main-file-upload');
+
             var plotPlace = document.getElementById('div1');
+
             var reader = new FileReader();
             var allTraces = [];
             var layout = {
@@ -17,10 +22,12 @@
                 title: 'Simple graph'
             };
 
+            Plotly.plot(plotPlace, [], layout);
+
             $('#plot-button').on('click', () => {
                 counter++;
                 let trace = { x: [], y: [], mode: 'lines+markers' };
-                // console.log(input.files[0]);
+
                 var file = input.files[0];
                 reader.readAsText(file);
                 reader.onload = () => {
@@ -35,15 +42,58 @@
                     allTraces.push(trace);
 
                     // console.log(data);
-                    var data = [trace];
+                    // var data = [trace];
 
-                    Plotly.plot(plotPlace, data, layout);
-                    console.log(Plotly);
+                    Plotly.addTraces(plotPlace, trace);
+                    // console.log(Plotly);
                 }
             })
 
             $('#reset-button').on('click', () => {
-                Plotly.purge(plotPlace);
+                if (mainTraceActive) {
+                    for (let index in allTraces) {
+                        Plotly.deleteTraces(plotPlace, +index + 1);
+                    }
+                } else {
+                    for (let index in allTraces) {
+                        Plotly.deleteTraces(plotPlace, +index);
+                    }
+                }
+
+                allTraces.splice(0, allTraces.length);
+            })
+
+
+            $('#main-plot-button').on('click', () => {
+                // counter++;
+                let trace = { x: [], y: [], mode: 'lines+markers' };
+
+                var file = mainInput.files[0];
+                reader.readAsText(file);
+                reader.onload = () => {
+                    var text = reader.result;
+                    var arr = text.split("\n");
+                    let tmp;
+                    for (let pair of arr) {
+                        tmp = pair.split(" ");
+                        trace.x.push(tmp[0]);
+                        trace.y.push(tmp[1]);
+                    }
+
+                    mainTraceActive = true;
+                    // var data = [trace];
+
+                    Plotly.addTraces(plotPlace, trace, 0);
+                    // .plot(plotPlace, data, layout);
+                    // console.log(Plotly);
+                }
+            })
+
+            $('#main-reset-button').on('click', () => {
+                if (mainTraceActive) {
+                    Plotly.deleteTraces(plotPlace, 0);
+                    mainTraceActive = false;
+                }
             })
         })
     </script>
@@ -59,6 +109,8 @@
             font-size: 16px;
             padding: 5px 10px;
         }
+
+        .space { margin: 20px auto; height: 1px; width: 90%; background-color: black; }
     </style>
 </head>
 
@@ -67,7 +119,17 @@
     <div id="div1"></div>
     <div id="div2"></div>
 
-    <input id="file-upload" type="file">
-    <button id="plot-button" type="button" class="my-button">Plot it!</button>
-    <button id="reset-button" type="button" class="my-button">Reset graph!</button>
+    <div>
+        <input id="main-file-upload" type="file">
+        <button id="main-plot-button" type="button" class="my-button">Plot main trace!</button>
+        <button id="main-reset-button" type="button" class="my-button">Remove main trace</button>
+    </div>
+
+    <div class="space"></div>
+
+    <div>
+        <input id="file-upload" type="file">
+        <button id="plot-button" type="button" class="my-button">Plot it!</button>
+        <button id="reset-button" type="button" class="my-button">Remove traces</button>
+    </div>
 </body>

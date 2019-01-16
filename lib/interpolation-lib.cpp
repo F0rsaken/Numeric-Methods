@@ -95,7 +95,7 @@ double useNewton(Point data[], int n, double x, double *diffTable[]) {
         for (int j = 0; j < i; j++) {
             ni = ni * (x-data[j].x);
         }
-        retVal += diffTable[0][i] * ni;
+        retVal += diffTable[i][i] * ni;
     }
 
     return retVal;
@@ -104,9 +104,65 @@ double useNewton(Point data[], int n, double x, double *diffTable[]) {
 void fillNewtonDiffTable(int n, Point data[], double *diffTable[]) {
     for (int i = 0; i < n; i++) { diffTable[i][0] = data[i].y; }
 
+    double upper;
+    double lower;
+
     for (int i = 1; i < n; i++) {
-        for (int j = 0; j < n-1; j++) {
-            diffTable[j][i] = diffTable[j+1][i-1] - diffTable[j][i-1];
+        // i-ta kolumna, j-ty wiersz
+        for (int j = i; j < n; j++) {
+            upper = diffTable[j][i - 1] - diffTable[j - 1][i - 1];
+            lower = data[j].x - data[j-i].x;
+            diffTable[j][i] = upper/lower;
+        }
+    }
+}
+
+double useHermit(Point data[], int n, double x, double *diffTable[]) {
+    double retVal = diffTable[0][1];
+    double ni;
+    int rows = 2 * n;
+    int columns = (2 * n) + 1;
+
+    // naprawic ten moment
+    for (int i = 2; i < columns; i++) {
+        ni = 1;
+        for (int j = 0; j < i-1; j++) {
+            ni = ni * (x - diffTable[j][0]);
+        }
+        retVal += diffTable[i-1][i] * ni;
+    }
+
+    return retVal;
+}
+
+void fillHermitDiffTable(int n, Point data[], double *diffTable[], double derivatives[]) {
+    int rows = 2*n;
+    int columns = (2*n)+1;
+    for (int i = 0; i < n; i++) {
+        diffTable[2*i][0] = data[i].x;
+        diffTable[(2*i)+1][0] = data[i].x;
+        diffTable[2*i][1] = data[i].y;
+        diffTable[(2*i)+1][1] = data[i].y;
+    }
+
+    diffTable[1][2] = derivatives[0];
+
+    int index;
+    for (int i = 1; i < n; i++) {
+        index = 2*i;
+        diffTable[index][2] = (diffTable[index][1] - diffTable[index-1][1]) / (diffTable[index][0] - diffTable[index-1][0]);
+        diffTable[index+1][2] = derivatives[i];
+    }
+
+    double upper;
+    double lower;
+
+    for (int i = 3; i < columns; i++) {
+        // i-ta kolumna, j-ty wiersz
+        for (int j = i-1; j < rows; j++) {
+            upper = diffTable[j][i - 1] - diffTable[j - 1][i - 1];
+            lower = diffTable[j][0] - diffTable[j-i+1][0];
+            diffTable[j][i] = upper/lower;
         }
     }
 }
