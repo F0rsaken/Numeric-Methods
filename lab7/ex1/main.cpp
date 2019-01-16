@@ -71,7 +71,7 @@ int main(int argc, char const *argv[]) {
         return 1;
     }
     // (xk - x0)/h  + 1 = n
-    double n = ((xk-x0)/h) + 1;
+    int n = ((xk-x0)/h) + 1;
 
     // FIXME: lepiej stała wartość
     a = finalFX(x0);
@@ -81,7 +81,11 @@ int main(int argc, char const *argv[]) {
     points[0].y = a;
     points[0].dY = fXY(x0, a);
 
-    eulerMethodDiff(points, h, n, fXY);
+    if (euler) {
+        eulerMethodDiff(points, h, n, fXY);
+    } else {
+        rungeKuttyMethodDiff(points, h, n, fXY);
+    }
 
     sendPlotToFile(points, n, "out.dat", true);
 

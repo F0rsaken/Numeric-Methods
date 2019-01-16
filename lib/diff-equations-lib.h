@@ -1,5 +1,7 @@
 #ifndef DIFF_EQUATIONS_LIB
 #define DIFF_EQUATIONS_LIB
+#include <string>
+using namespace std;
 
 class Point {
 public:
@@ -31,5 +33,6 @@ public:
 void sendPlotToFile(PointDifferential data[], int n, string fileName, bool informUser = false);
 
 void eulerMethodDiff(PointDifferential points[], double h, int n, double yPrim(double x, double y));
+void rungeKuttyMethodDiff(PointDifferential points[], double h, int n, double yPrim(double x, double y));
 
 #endif

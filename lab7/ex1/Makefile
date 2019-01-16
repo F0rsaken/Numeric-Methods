@@ -2,7 +2,7 @@ MAIN_FILE=main
 LIB_PATH=../../lib/
 LIB_NAME=matrix-lib
 LIB_PATH_2=../../lib/
-LIB_NAME_2=interpolation-lib
+LIB_NAME_2=diff-equations-lib
 
 all: main
 
