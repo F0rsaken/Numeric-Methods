@@ -4,7 +4,7 @@
 #include <fstream>
 #include <math.h>
 // #include "../../lib/matrix-lib.h"
-// #include "../../lib/interpolation-lib.h"
+#include "../../lib/interpolation-lib.h"
 #include "../../lib/diff-equations-lib.h"
 using namespace std;
 
@@ -42,11 +42,31 @@ double xk = (7*M_PI)/2;
 double a;
 
 double fXY(double x, double y) {
-    return 5*sin(x)*( (5*cos(x)) + y );
+    double tmp1 = 5*sin(x);
+    double tmp2 = 5*cos(x);
+    return (tmp1 * (tmp2 + y));
 }
 
 double finalFX(double x) {
-    return exp(-5 * cos(x)) - (5*cos(x)) + 1;
+    double tmp1 = exp((-5) * cos(x));
+    double tmp2 = (5*cos(x)) + 1;
+    return (tmp1 - tmp2);
+}
+
+void drawOriginalPlot() {
+    double delta = 0.05;
+    int n = (xk - x0)/delta;
+    Point *originalPoints = new Point[n];
+    originalPoints[0].x = x0;
+    originalPoints[0].y = finalFX(x0);
+    for (int i = 1; i < n; i++) {
+        originalPoints[i].x = originalPoints[i - 1].x + delta;
+        originalPoints[i].y = finalFX(originalPoints[i].x);
+    }
+
+    sendPlotToFile(originalPoints, n, "original_plot.dat", true);
+
+    delete[] originalPoints;
 }
 
 int main(int argc, char const *argv[]) {
@@ -87,7 +107,10 @@ int main(int argc, char const *argv[]) {
         rungeKuttyMethodDiff(points, h, n, fXY);
     }
 
-    sendPlotToFile(points, n, "out.dat", true);
+    // TODO: ograniczyc ilosc punktow dla wyjścia
+    sendPlotToFileDiff(points, n, "out.dat", true);
+
+    drawOriginalPlot();
 
     delete[] points;
 

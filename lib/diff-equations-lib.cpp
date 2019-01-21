@@ -3,7 +3,7 @@
 #include "diff-equations-lib.h"
 using namespace std;
 
-void sendPlotToFile(PointDifferential data[], int n, string fileName, bool informUser) {
+void sendPlotToFileDiff(PointDifferential data[], int n, string fileName, bool informUser) {
     // cout << "Interpolacja: \n";
     ofstream outputFile;
     outputFile.open(fileName, ios::trunc);

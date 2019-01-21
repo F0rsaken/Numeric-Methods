@@ -3,17 +3,17 @@
 #include <string>
 using namespace std;
 
-class Point {
-public:
-    double x;
-    double y;
+// class Point {
+// public:
+//     double x;
+//     double y;
 
-    Point() {}
-    Point(double x, double y) {
-        this->x = x;
-        this->y = y;
-    }
-};
+//     Point() {}
+//     Point(double x, double y) {
+//         this->x = x;
+//         this->y = y;
+//     }
+// };
 
 class PointDifferential {
 public:
@@ -30,7 +30,7 @@ public:
     ~PointDifferential() {}
 };
 
-void sendPlotToFile(PointDifferential data[], int n, string fileName, bool informUser = false);
+void sendPlotToFileDiff(PointDifferential data[], int n, string fileName, bool informUser = false);
 
 void eulerMethodDiff(PointDifferential points[], double h, int n, double yPrim(double x, double y));
 void rungeKuttyMethodDiff(PointDifferential points[], double h, int n, double yPrim(double x, double y));
