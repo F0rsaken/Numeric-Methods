@@ -4,7 +4,7 @@
 using namespace std;
 
 class Point {
-public:
+  public:
     double x;
     double y;
 
@@ -15,10 +15,9 @@ public:
     }
 };
 
-
 class Polynomial {
-public:
-    double a, b, c, d, x;
+  public:
+    double a, b, c, d;
 
     Polynomial() {};
     Polynomial(double a, double b, double c, double d);
@@ -27,20 +26,46 @@ public:
     double f(double x);
 };
 
+class CubicSpline {
+  public:
+    double h, x1, x2, y1, y2, M1, M2;
 
-class Polynomial2 {
-public:
-    double a, b, c, x;
+    CubicSpline() {};
+    CubicSpline(double h, double x1, double x2, double y1, double y2, double M1, double M2) {
+        this->h = h;
+        this->x1 = x1;
+        this->x2 = x2;
+        this->y1 = y1;
+        this->y2 = y2;
+        this->M1 = M1;
+        this->M2 = M2;
+    }
+    ~CubicSpline() {};
 
-    Polynomial2(){};
-    Polynomial2(double a, double b, double c);
-    ~Polynomial2(){};
+    double fx(double x);
+};
 
-    double f(double x);
+class QuadraticSpline {
+  public:
+    double h, x1, x2, y, D1, D2;
+
+    QuadraticSpline() {};
+    QuadraticSpline(double h, double x1, double x2, double y, double D1, double D2) {
+        this->h = h;
+        this->x1 = x1;
+        this->x2 = x2;
+        this->y = y;
+        this->D1 = D1;
+        this->D2 = D2;
+    }
+    ~QuadraticSpline() {};
+
+    double fx(double x);
+
 };
 
 class PolynomialFunction {
-public:
+  public:
     double *factors;
     int size;
 
@@ -60,8 +85,8 @@ double useNewton(Point data[], int n, double x, double *diffTable[]);
 double useHermit(Point data[], int n, double x, double *diffTable[]);
 void fillNewtonDiffTable(int n, Point data[], double *diffTable[]);
 void fillHermitDiffTable(int n, Point data[], double *diffTable[], double derivatives[]);
-Polynomial *cubicSplines(Point *data, int n, int boundaryType);
-Polynomial2 * quadraticSplines(Point *data, int n);
+CubicSpline *cubicSplines(Point *data, int n, int boundaryType);
+QuadraticSpline * quadraticSplines(Point *data, int n, double D0);
 PolynomialFunction polynomialRegression(Point *data, int n);
 
 // aproksymacje

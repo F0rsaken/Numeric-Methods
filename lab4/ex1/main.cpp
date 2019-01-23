@@ -11,7 +11,7 @@
 #include <string>
 using namespace std;
 
-double step = 0.2;
+double step = 0.1;
 
 double a = -3 * M_PI;
 double b = 2 * M_PI;

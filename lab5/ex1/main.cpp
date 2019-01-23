@@ -9,7 +9,7 @@
 #include "../../lib/interpolation-lib.h"
 using namespace std;
 
-double step = 0.01;
+double step = 0.1;
 
 double a = -3 * M_PI;
 double b = 2 * M_PI;
@@ -17,6 +17,19 @@ double b = 2 * M_PI;
 // y = e^(-3( sin(x) ))
 double fX(double x) {
     return exp( -3 * sin(x) );
+}
+
+void drawOriginalPlot() {
+    int n = ((b - a) / step) + 1;
+    Point *dataPoints = new Point[n];
+    double x = a;
+    for (int i = 0; i < n-1; i++, x += step) {
+        dataPoints[i].x = x;
+        dataPoints[i].y = fX(x);
+    }
+    dataPoints[n-1].x = b;
+    dataPoints[n-1].y = fX(b);
+    sendPlotToFile(dataPoints, n, "original_plot.dat", true);
 }
 
 Point* getDataPoints(int n) {
@@ -37,13 +50,18 @@ Point* getDataPoints(int n) {
     return data;
 }
 
+/**
+ * Argumenty:
+ *  - warunek brzegowy: 0 | 1 ( clamped | natural )
+ *  - ilosc przedziałow: n
+ */
+
 int main(int argc, char const *argv[]) {
     if (argc != 3) {
         cout << "Zła liczba argumentów!\n";
         return 1;
     }
 
-    // int printMode = atoi(argv[1]); // 0 - cout, 1 - do pliku
     int boundaryType = atoi(argv[1]); // 0 - clamped, 1 - natural
     int n = atoi(argv[2]);
     
@@ -53,7 +71,15 @@ int main(int argc, char const *argv[]) {
     }
 
     Point *data = getDataPoints(n);
-    Polynomial *splines = cubicSplines(data, n, boundaryType);
+    CubicSpline *splines = cubicSplines(data, n, boundaryType);
+
+    cout << "original x: " << data[0].x << " y: " << data[0].y << endl;
+    cout << "counted  x: " << data[0].x << " y: " << splines[0].fx(data[0].x) << endl;
+
+    for (int i = 1; i < n; i++) {
+        cout << "original x: " << data[i].x << " y: " << data[i].y << endl;
+        cout << "counted  x: " << data[i].x << " y: " << splines[i - 1].fx(data[i].x) << endl;
+    }
     
     int outN = ((data[n - 1].x - data[0].x) / step) + 1;
     // cout << "OutN: " << outN << endl;
@@ -61,24 +87,20 @@ int main(int argc, char const *argv[]) {
     double xi = data[0].x;
 
     for (int i = 0; i < outN; xi += step, i++) {
-            interpolation[i].x = xi;
+        interpolation[i].x = xi;
 
-            for (int j = 1; j < n; j++) {
-                if ( xi < data[j].x ) {
-                    interpolation[i].y = splines[j-1].f(xi);
-                }
+        for (int j = 1; j < n; j++) {
+            if ( (xi <= splines[j-1].x2) && (xi >= splines[j-1].x1) ) {
+                interpolation[i].y = splines[j-1].fx(xi);
+                break;
             }
         }
+    }
     
     cout << "Interpolacja: \n";
-    ofstream outputFile;
-    outputFile.open("out.dat", ios::trunc);
-    for(int i = 0; i < outN; i++) {
-        outputFile << interpolation[i].x << " " << interpolation[i].y << endl;
-        // cout << "x: " << interpolation[i].x << ", y: " << interpolation[i].y << endl;
-    }
-    outputFile.close();
-    cout << "Skończono pisać do pliku\n";
+    sendPlotToFile(interpolation, outN, "out.dat", true);
+
+    drawOriginalPlot();
 
     delete[] data;
     delete[] splines;

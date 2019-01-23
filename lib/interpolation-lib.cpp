@@ -18,17 +18,6 @@ double Polynomial::f(double x) {
     return retVal;
 }
 
-Polynomial2::Polynomial2(double a, double b, double c) {
-    this->a = a;
-    this->b = b;
-    this->c = c;
-}
-
-double Polynomial2::f(double x) {
-    double retVal = (this->a * pow(x, 2)) + (this->b * x) + this->c;
-    return retVal;
-}
-
 PolynomialFunction::PolynomialFunction() {}
 
 PolynomialFunction::PolynomialFunction(int size) {
@@ -44,6 +33,20 @@ PolynomialFunction::PolynomialFunction(int size, double *points) {
 PolynomialFunction::~PolynomialFunction() {
     delete[] this->factors;
 }
+
+double QuadraticSpline::fx(double x) {
+    double tmp = (( (this->D2*pow(x - this->x1, 2) ) - (this->D1*pow(this->x2-x, 2)) )/(2*this->h));
+    return tmp + this->y - ( (this->D2 * this->h)/2 );
+}
+
+double CubicSpline::fx(double x) {
+    double tmp1 = ((this->M1 * pow(this->x2 - x, 3)) + (this->M2 * pow(x - this->x1, 3)))/(6*this->h);
+    double tmp2 = ((this->y1/this->h) - ((this->M1 * this->h)/6)) * (this->x2 - x);
+    double tmp3 = ((this->y2/this->h) - ((this->M2 * this->h)/6)) * (x - this->x1);
+    return tmp1 + tmp2 + tmp3;
+}
+
+
 
 double PolynomialFunction::f(double x) {
     if (this->size <= 0) {
@@ -168,7 +171,7 @@ void fillHermitDiffTable(int n, Point data[], double *diffTable[], double deriva
 }
 
 
-Polynomial * cubicSplines(Point *data, int n, int boundaryType) {
+CubicSpline * cubicSplines(Point *data, int n, int boundaryType) {
     // hi = xi - xi-1
     double *h = new double[n-1];
     for (int i = 0; i < n-1; i++) { h[i] = data[i+1].x - data[i].x; }
@@ -181,11 +184,9 @@ Polynomial * cubicSplines(Point *data, int n, int boundaryType) {
         lower[i] = h[i]/tmp;
         upper[i+1] = h[i+1]/tmp;
     }
-    double *v = new double[n]; // f[xi-1, xi, xi+1]
-    for (int i = 1; i < n-1; i++) {
-        v[i] = 6*(1/(h[i]+h[i-1]))*( ( (data[i+1].y - data[i].y)/h[i] ) - ( (data[i].y - data[i-1].y)/h[i-1] ) );
-    }
 
+    // FIXME: dyferencjal
+    double *diff = new double[n]; // f[xi-1, xi, xi+1]
     double *midVector = new double[n];
     for (int i = 0; i < n; i++) { midVector[i] = 2; }
 
@@ -193,50 +194,65 @@ Polynomial * cubicSplines(Point *data, int n, int boundaryType) {
         midVector[0] = 1; midVector[n-1] = 1;
         lower[n-2] = 0;
         upper[0] = 0;
-        v[0] = 0; v[n-1] = 0;
+        diff[0] = 0; diff[n-1] = 0;
     } else { // clamped boundary condition
         upper[0] = 1;
         lower[n-2] = 1;
-        v[0] = 6*( (data[1].y - data[0].y)/(h[0]*( data[1].x - data[0].x ) ) );
-        v[n-1] = 6*( (data[n-1].y - data[n-2].y)/(h[n-2]*( data[n-1].x - data[n-2].x ) ) );
+        diff[0] = (6*( (data[1].y - data[0].y) / (data[1].x - data[0].x) ))/(data[1].x - data[0].x);
+        diff[n-1] = (6*( (data[n-1].y - data[n-2].y) / data[n-1].x - data[n-2].x ))/(data[n-1].x - data[n-2].x);
+        // v[0] = 6*( (data[1].y - data[0].y)/(h[0]*( data[1].x - data[0].x ) ) );
+        // v[n-1] = 6*( (data[n-1].y - data[n-2].y)/(h[n-2]*( data[n-1].x - data[n-2].x ) ) );
     }
 
-    double *M = thomasAlgorithm(lower, midVector, upper, v, n);
-    Polynomial *retSplines = new Polynomial[n-1];
+    for (int i = 1; i < n-1; i++) {
+        diff[i] = (6*(((data[i+1].y - data[i].y)/(data[i+1].x - data[i].x))
+                - ((data[i].y - data[i-1].y)/(data[i].x - data[i-1].x))))
+            /(data[i+1].x - data[i-1].x);
+    }
+
+
+    double *M = thomasAlgorithm(lower, midVector, upper, diff, n);
+    CubicSpline *retSplines = new CubicSpline[n-1];
 
     for (int i = 0; i < n-1; i++) {
-        retSplines[i].a = (M[i+1]-M[i])/(6 * h[i]);
-        retSplines[i].b = ( ( (data[i+1].x * M[i]) - (data[i].x * M[i+1]) )/(2 * h[i]) );
-        retSplines[i].c = (( data[i+1].y - data[i].y )/h[i]) - ( ( (h[i] * M[i+1]) - (h[i] * M[i]) )/6 );
-        retSplines[i].d = (( (data[i+1].x * data[i].y) - (data[i].x * data[i+1].y) )/h[i]) - (( (h[i] * data[i+1].x * M[i]) - (h[i] * data[i].x * M[i+1]) )/6);
+        retSplines[i].x1 = data[i].x;
+        retSplines[i].x2 = data[i+1].x;
+        retSplines[i].y1 = data[i].y;
+        retSplines[i].y2 = data[i+1].x;
+        retSplines[i].M1 = M[i];
+        retSplines[i].M2 = M[i+1];
+        retSplines[i].h = h[i];
     }
 
     delete[] h;
     delete[] lower;
     delete[] upper;
     delete[] midVector;
-    delete[] v;
+    delete[] diff;
     delete[] M;
 
     return retSplines;
 }
 
-Polynomial2 * quadraticSplines(Point *data, int n) {
+QuadraticSpline * quadraticSplines(Point *data, int n, double D0) {
     double *h = new double[n-1];
     for (int i = 0; i < n-1; i++) { h[i] = data[i+1].x - data[i].x; }
 
     double *D = new double[n];
-    D[0] = 0;
+    D[0] = D0;
     for (int i = 1; i < n; i++) {
         D[i] = ( ( (2*data[i].y) - (2*data[i-1].y) )/h[i-1] ) - D[i-1];
     }
 
-    Polynomial2 *retSplines = new Polynomial2[n-1];
+    QuadraticSpline *retSplines = new QuadraticSpline[n-1];
 
     for (int i = 0; i < n-1; i++) {
-        retSplines[i].a = ( (D[i+1] - D[i]) / (2*h[i]) );
-        retSplines[i].b = ( ( (data[i+1].x * D[i]) - (data[i].x * D[i-1]) ) / h[i] );
-        retSplines[i].c = ( data[i+1].y - (D[i+1] * h[i] * 2) );
+        retSplines[i].x1 = data[i].x;
+        retSplines[i].x2 = data[i+1].x;
+        retSplines[i].h = h[i];
+        retSplines[i].y = data[i+1].y;
+        retSplines[i].D1 = D[i];
+        retSplines[i].D2 = D[i+1];
     }
 
     delete[] h;
@@ -265,19 +281,19 @@ PolynomialFunction polynomialRegression(Point *data, int n) {
             aMatrix[j][i] = xCountedValues[i];
         }
     }
-    aMatrix[0][0] = n;
+    // aMatrix[0][0] = n; // FIXME: da fuq?
     double *bVector = new double[n];
     // bVector[0] = 0;
     for (int i = 0; i < n; i++) {
         bVector[i] = 0;
-        for (int j = 0; j < n; i++) {
-            bVector[i] += (data[j].y * pow(data[j].x, (double)j));
+        for (int j = 0; j < n; j++) {
+            bVector[i] += (data[j].y * pow(data[j].x, j));
         }
     }
 
     double *initVector = new double[n];
     for (int i = 0; i < n; i++) { initVector[i] = 0; }
-    double *xVector = SORAlgorithm(n, (const double**)aMatrix, initVector, bVector, 0.01, 1, 1);
+    double *xVector = SORAlgorithm(n, (const double**)aMatrix, initVector, bVector, 0.1, 1, 1);
 
     PolynomialFunction aproximation = PolynomialFunction(n, xVector);
 
