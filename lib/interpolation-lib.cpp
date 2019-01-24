@@ -218,7 +218,7 @@ CubicSpline * cubicSplines(Point *data, int n, int boundaryType) {
         retSplines[i].x1 = data[i].x;
         retSplines[i].x2 = data[i+1].x;
         retSplines[i].y1 = data[i].y;
-        retSplines[i].y2 = data[i+1].x;
+        retSplines[i].y2 = data[i+1].y;
         retSplines[i].M1 = M[i];
         retSplines[i].M2 = M[i+1];
         retSplines[i].h = h[i];
