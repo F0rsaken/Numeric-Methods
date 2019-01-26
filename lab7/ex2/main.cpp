@@ -10,6 +10,7 @@ using namespace std;
 
 
 /**
+ * FIXME: inna funkcja
  * Zadana funkcja:
  * y' - kmy sin(mx) = k^2 m sin(mx) cos(mx)
  * y(x0) = a
@@ -34,7 +35,6 @@ using namespace std;
 /**
  * Argumenty:
  *  - h
- *  - 1 | 2 (Euler | Runge-Kutta)
  **/
 
 double x0 = M_PI/2;
@@ -103,19 +103,6 @@ int main(int argc, char const *argv[]) {
 
     double h = atof(argv[1]);
 
-    int mode = atoi(argv[2]);
-    bool euler = false;
-
-    if (mode == 1) {
-        euler = true;
-        cout << "Metoda: Euler'a\n";
-    } else if (mode == 2) {
-        euler = false;
-        cout << "Metoda: Rungego-Kutty\n";
-    } else {
-        cout << "Nieprawidłowy 2 argument!\n";
-        return 1;
-    }
     // (xk - x0)/h  + 1 = n
     int n = ((xk-x0)/h) + 1;
 
@@ -127,11 +114,7 @@ int main(int argc, char const *argv[]) {
     points[0].y = a;
     points[0].dY = fXY(x0, a);
 
-    if (euler) {
-        eulerMethodDiff(points, h, n, fXY);
-    } else {
-        rungeKuttyMethodDiff(points, h, n, fXY);
-    }
+    // FIXME: rozwiazanie
 
     getBestCountedPoints(n, points);
 

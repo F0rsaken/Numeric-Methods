@@ -63,7 +63,7 @@ int main(int argc, char const *argv[]) {
     int n = atoi(argv[1]);
 
     Point *data = getDataPoints(n);
-    QuadraticSpline *splines = quadraticSplines(data, n);
+    QuadraticSpline *splines = quadraticSplines(data, n, 3);
 
     int outN = ((data[n - 1].x - data[0].x) / step) + 1;
     // cout << "OutN: " << outN << endl;

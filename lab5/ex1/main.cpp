@@ -41,8 +41,9 @@ Point* getDataPoints(int n) {
     for (int i = 1; i < n-1; i++) {
         data[i].x = data[i-1].x + singleStep;
     }
-
+    // cout << "Step: " << singleStep << "\n";
     for (int i = 0; i < n; i++) {
+        // cout << "x[" << i << "]: " << data[i].x << endl;
         data[i].y = fX(data[i].x);
         // cout << "x[" << i << "]: " << data[i].x << ",  " << "y[" << i << "]: " << data[i].y << endl;
     }
@@ -64,22 +65,18 @@ int main(int argc, char const *argv[]) {
 
     int boundaryType = atoi(argv[1]); // 0 - clamped, 1 - natural
     int n = atoi(argv[2]);
-    
-    if (boundaryType != 0 && boundaryType != 1) {
+
+    if (boundaryType == 0) {
+        cout << "Użyto clamped boundary\n";
+    } else if (boundaryType == 1) {
+        cout << "Użyto natural boundary\n";
+    } else {
         cout << "Zła wartość pierwszego argumentu!\n";
         return 1;
     }
 
     Point *data = getDataPoints(n);
     CubicSpline *splines = cubicSplines(data, n, boundaryType);
-
-    cout << "original x: " << data[0].x << " y: " << data[0].y << endl;
-    cout << "counted  x: " << data[0].x << " y: " << splines[0].fx(data[0].x) << endl;
-
-    for (int i = 1; i < n; i++) {
-        cout << "original x: " << data[i].x << " y: " << data[i].y << endl;
-        cout << "counted  x: " << data[i].x << " y: " << splines[i - 1].fx(data[i].x) << endl;
-    }
     
     int outN = ((data[n - 1].x - data[0].x) / step) + 1;
     // cout << "OutN: " << outN << endl;
@@ -97,7 +94,7 @@ int main(int argc, char const *argv[]) {
         }
     }
     
-    cout << "Interpolacja: \n";
+    cout << "Interpolacja splajnami stopnia trzeciego\n";
     sendPlotToFile(interpolation, outN, "out.dat", true);
 
     drawOriginalPlot();
