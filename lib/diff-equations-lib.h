@@ -1,6 +1,7 @@
 #ifndef DIFF_EQUATIONS_LIB
 #define DIFF_EQUATIONS_LIB
 #include <string>
+#include "interpolation-lib.h"
 using namespace std;
 
 // class Point {
@@ -34,5 +35,6 @@ void sendPlotToFileDiff(PointDifferential data[], int n, string fileName, bool i
 
 void eulerMethodDiff(PointDifferential points[], double h, int n, double yPrim(double x, double y));
 void rungeKuttyMethodDiff(PointDifferential points[], double h, int n, double yPrim(double x, double y));
+Point * MRSAlgorithm(double h, int n, Point startP, Point endP);
 
 #endif

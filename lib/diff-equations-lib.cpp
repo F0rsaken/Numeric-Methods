@@ -1,6 +1,9 @@
 #include <iostream>
 #include <fstream>
+#include <math.h>
+#include "matrix-lib.h"
 #include "diff-equations-lib.h"
+#include "interpolation-lib.h"
 using namespace std;
 
 void sendPlotToFileDiff(PointDifferential data[], int n, string fileName, bool informUser) {
@@ -36,4 +39,48 @@ void rungeKuttyMethodDiff(PointDifferential points[], double h, int n, double yP
         points[i].y = points[i-1].y + dyn;
         points[i].dY = yPrim(points[i].x, points[i].y);
     }
+}
+
+Point * MRSAlgorithm(double h, int n, Point startP, Point endP) {
+    double * upper = new double[n-1];
+    double * lower = new double[n-1];
+    double * a = new double[n];
+    double * d = new double[n];
+    Point *outPoints = new Point[n];
+
+    double factor = 1/pow(h, 2);
+
+    for (int i = 0; i < n-1; i++) {
+        upper[i] = factor;
+        lower[i] = factor;
+    }
+    upper[0] = 0;
+    lower[n-2] = 0;
+
+    outPoints[0].x = startP.x;
+    outPoints[n - 1].x = endP.x;
+    for (int i = 1; i < n-1; i++) { outPoints[i].x = outPoints[i-1].x + h; }
+
+    d[0] = startP.y;
+    d[n-1] = endP.y;
+    for (int i = 1; i < n-1; i++) {
+        a[i] = 4 - (2*factor);
+        d[i] = 4*outPoints[i].x;
+    }
+
+    a[0] = 1;
+    a[n-1] = 1;
+
+    double *y = thomasAlgorithm(lower, a, upper, d, n);
+
+    for (int i = 0; i < n; i++) {
+        outPoints[i].y = y[i];
+    }
+
+    delete[] upper;
+    delete[] lower;
+    delete[] a;
+    delete[] d;
+
+    return outPoints;
 }

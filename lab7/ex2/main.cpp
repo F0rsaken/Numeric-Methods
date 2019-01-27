@@ -3,7 +3,7 @@
 #include <time.h>
 #include <fstream>
 #include <math.h>
-// #include "../../lib/matrix-lib.h"
+#include "../../lib/matrix-lib.h"
 #include "../../lib/interpolation-lib.h"
 #include "../../lib/diff-equations-lib.h"
 using namespace std;
@@ -12,24 +12,17 @@ using namespace std;
 /**
  * FIXME: inna funkcja
  * Zadana funkcja:
- * y' - kmy sin(mx) = k^2 m sin(mx) cos(mx)
- * y(x0) = a
+ * y'' + 4y = 4x
+ * y(0) = 0
+ * y((2pi+1)/2) = ?
  * 
  * Zadane parametry:
- * x0 = pi / 2
- * xk = (7*pi)/ 2
- * m = 1
- * k = 5
+ * x0 = 0
+ * xk = (2PI + 1)/2
  * 
- * Finalna postać:
- * y' - 5y*sin(x) = 25*sin(x)*cos(x)
- * y' = 25*sin(x)*cos(x) + 5y*sin(x) = 5sin(x) * ( 5cos(x) + y )
- * y' = 5sin(x) * (5cos(x) + y)
- * 
- * a = 2
  * 
  * rozwiazanie:
- *  y(x) = e^(-5 * cos(x)) - 5*cos(x) + 1
+ *  y(x) = -sin(2x) + x;
  */
 
 /**
@@ -37,42 +30,36 @@ using namespace std;
  *  - h
  **/
 
-double x0 = M_PI/2;
-double xk = (7*M_PI)/2;
-double a;
-double step = 0.05;
+double xS = 0;
+double xE = ((2*M_PI)+1)/2;
+double yS = 0;
+double yE;
+double step = 0.02;
 
-double fXY(double x, double y) {
-    double tmp1 = 5*sin(x);
-    double tmp2 = 5*cos(x);
-    return (tmp1 * (tmp2 + y));
-}
-
+// TODO:
 double finalFX(double x) {
-    double tmp1 = exp((-5) * cos(x));
-    double tmp2 = (5*cos(x)) + 1;
-    return (tmp1 - tmp2);
+    double tmp1 = -1 * sin(2*x);
+    return (tmp1 + x);
 }
-
 
 void drawOriginalPlot() {
-    int n = ((xk - x0) / step) + 1;
+    int n = ((xE - xS) / step) + 1;
     Point *dataPoints = new Point[n];
-    double x = x0;
+    double x = xS;
     for (int i = 0; i < n-1; i++, x += step) {
         dataPoints[i].x = x;
         dataPoints[i].y = finalFX(x);
     }
-    dataPoints[n-1].x = xk;
-    dataPoints[n-1].y = finalFX(xk);
+    dataPoints[n-1].x = xE;
+    dataPoints[n-1].y = finalFX(xE);
     sendPlotToFile(dataPoints, n, "original_plot.dat", true);
     delete[] dataPoints;
 }
 
-void getBestCountedPoints(int n, PointDifferential points[]) {
-    int outN = ((xk - x0) / step) + 1;
+void getBestCountedPoints(int n, Point points[]) {
+    int outN = ((xE - xS) / step) + 1;
     if (outN > n) {
-        sendPlotToFileDiff(points, n, "out.dat", true);
+        sendPlotToFile(points, n, "out.dat", true);
         return;
     }
 
@@ -96,25 +83,22 @@ void getBestCountedPoints(int n, PointDifferential points[]) {
 }
 
 int main(int argc, char const *argv[]) {
-    if (argc != 3) {
+    if (argc != 2) {
         cout << "Zła liczba argumentów!\n";
         return 1;
     }
 
+    yE = finalFX(xE);
     double h = atof(argv[1]);
+    cout << "1/h^2: " << 1/pow(h,2) << endl;
 
     // (xk - x0)/h  + 1 = n
-    int n = ((xk-x0)/h) + 1;
+    int n = ((xE-xS)/h) + 1;
 
-    // FIXME: lepiej stała wartość
-    a = 2;
+    Point startPoint = Point(xS, yS);
+    Point endPoint = Point(xE, yE);
 
-    PointDifferential * points = new PointDifferential[n];
-    points[0].x = x0;
-    points[0].y = a;
-    points[0].dY = fXY(x0, a);
-
-    // FIXME: rozwiazanie
+    Point *points = MRSAlgorithm(h, n, startPoint, endPoint);
 
     getBestCountedPoints(n, points);
 
