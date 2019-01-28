@@ -87,10 +87,10 @@ void fillNewtonDiffTable(int n, Point data[], double *diffTable[]);
 void fillHermitDiffTable(int n, Point data[], double *diffTable[], double derivatives[]);
 CubicSpline *cubicSplines(Point *data, int n, int boundaryType);
 QuadraticSpline * quadraticSplines(Point *data, int n, double D0);
-PolynomialFunction polynomialRegression(Point *data, int n);
 
 // aproksymacje
-double ** countFactorsForTrygonometricApproximation(Point * dataPoints, int n);
-double trygonometricApproximation(double *factorsTable[], int n, Point * dataPoints, double x);
+PolynomialFunction polynomialRegression(Point *data, int n, int m);
+double ** countFactorsForTrygonometricApproximation(Point * dataPoints, int nPoints, int degree);
+double trygonometricApproximation(double *factorsTable[], int degree, double x);
 
 #endif

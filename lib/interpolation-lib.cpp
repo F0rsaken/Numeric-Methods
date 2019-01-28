@@ -261,61 +261,65 @@ QuadraticSpline * quadraticSplines(Point *data, int n, double D0) {
     return retSplines;
 }
 
-PolynomialFunction polynomialRegression(Point *data, int n) {
-    int xSize = (2*n) - 1;
-    double *xCountedValues = new double[xSize];
-    xCountedValues[0] = 1;
-    // robimy tablice, aby przyspieszyć liczenie
-    for (int i = 1; i < xSize; i++) {
-        xCountedValues[i] = 0;
+PolynomialFunction polynomialRegression(Point *data, int n, int m) {
+    double **matrix = new double*[m];
+    for (int i = 0; i < m; i++) {
+        matrix[i] = new double[m];
+    }
+
+    // tablica sum po x od 0 do 2m, dla skrocenia obliczen
+    double *xSums = new double[2*m];
+    xSums[0] = 1;
+    for (int i = 1; i < 2*m; i++) {
+        xSums[i] = 0;
         for (int j = 0; j < n; j++) {
-            xCountedValues[i] =pow(data[j].x, i);
+            xSums[i] += pow(data[j].x, i);
         }
     }
 
-    double **aMatrix = new double*[n];
-    for (int i = 0; i < n; i++) { aMatrix[i] = new double[n]; }
-
-    for (int j = 0; j < n; j++) {
-        for (int i = j; i < j+n; i++) {
-            aMatrix[j][i] = xCountedValues[i];
-        }
-    }
-    // aMatrix[0][0] = n; // FIXME: da fuq?
-    double *bVector = new double[n];
-    // bVector[0] = 0;
-    for (int i = 0; i < n; i++) {
-        bVector[i] = 0;
-        for (int j = 0; j < n; j++) {
-            bVector[i] += (data[j].y * pow(data[j].x, j));
+    // wypelniamy macierz wspolczynnikow
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < m; j++) {
+            matrix[i][j] = xSums[i+j];
         }
     }
 
-    double *initVector = new double[n];
-    for (int i = 0; i < n; i++) { initVector[i] = 0; }
-    double *xVector = SORAlgorithm(n, (const double**)aMatrix, initVector, bVector, 0.1, 1, 1);
+    // wypelniamy rozwiazania, czyli sumy y*x^i
+    double *freeVector = new double[m];
+    for (int i = 0; i < m; i++) {
+        freeVector[i] = 0;
+        for (int j = 0; j < m; j++) {
+            freeVector[i] += data[j].y * pow(data[j].x, i);
+        }
+    }
+
+    // double *initVector = new double[n];
+    // for (int i = 0; i < n; i++) { initVector[i] = 1; }
+    // double *xVector = SORAlgorithm(m, (const double**)matrixinitVector, freeVector, 0.1, 1, 1);
+    double *xVector = gaussElimination(m, m, matrix, freeVector);
+    // double *xVector = jacobiAlgorithm(m, (const double**)matrix, initVector, freeVector, 1, 1);
 
     PolynomialFunction aproximation = PolynomialFunction(n, xVector);
 
-    for (int i = 0; i < n; i++) {
-        delete[] aMatrix[i];
+    for (int i = 0; i < m; i++) {
+        delete[] matrix[i];
     }
-    delete[] aMatrix;
-    delete[] xCountedValues;
-    delete[] bVector;
+    delete[] matrix;
+    delete[] xSums;
+    delete[] freeVector;
 
     return aproximation;
 }
 
-double ** countFactorsForTrygonometricApproximation(Point *dataPoints, int n) {
+double ** countFactorsForTrygonometricApproximation(Point *dataPoints, int nPoints, int degree) {
     double **factorsTable = new double*[2];
-    factorsTable[0] = new double[n];
-    factorsTable[1] = new double[n];
+    factorsTable[0] = new double[degree+1];
+    factorsTable[1] = new double[degree+1];
 
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i <= degree; i++) {
         // coś * 2 i potem przez n
         factorsTable[0][i] = 0; factorsTable[1][i] = 0;
-        for (int j = 0; j <= i; j++) {
+        for (int j = 0; j < nPoints; j++) {
             // punkt a
             factorsTable[0][i] += ( dataPoints[j].y * cos( i*dataPoints[j].x ) );
             // punkt b
@@ -323,20 +327,20 @@ double ** countFactorsForTrygonometricApproximation(Point *dataPoints, int n) {
         }
         factorsTable[0][i] *= 2; factorsTable[1][i] *= 2;
 
-        factorsTable[0][i] /= n; factorsTable[1][i] /= n;
+        factorsTable[0][i] /= nPoints; factorsTable[1][i] /= nPoints;
     }
 
     return factorsTable;
 }
 
-double trygonometricApproximation(double *factorsTable[], int n, Point *dataPoints, double x) {
+double trygonometricApproximation(double *factorsTable[], int degree, double x) {
     double *aFactors = factorsTable[0];
     double *bFactors = factorsTable[1];
     double outVal = aFactors[0]/2;
 
     double aSum = 0;
     double bSum = 0;
-    for (int i = 1; i < n; i++) {
+    for (int i = 1; i <= degree; i++) {
         aSum += (aFactors[i] * cos(i * x));
         bSum += (bFactors[i] * sin(i * x));
     }

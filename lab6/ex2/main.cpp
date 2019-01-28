@@ -34,7 +34,6 @@ void drawOriginalPlot() {
 
 
 Point* getDataPoints(int n) {
-    // przesuniecie funkcji
     double oldA = a, oldB = b;
     a = 0; b = 2 * M_PI;
 
@@ -57,45 +56,38 @@ Point* getDataPoints(int n) {
     return data;
 }
 
+
 /** 
  * Argumenty:
  *  n - ilość punktow
 */
 
 int main(int argc, char const *argv[]) {
-    if (argc != 2) {
+    if (argc != 3) {
         cout << "Zła liczba argumentów!\n";
         return 1;
     }
 
     int n = atoi(argv[1]);
+    int m = atoi(argv[2]);
 
     drawOriginalPlot();
-
     Point *data = getDataPoints(n);
+
     int outN = ((b - a) / step) + 1;
     // cout << "OutN: " << outN << endl;
 
     Point *approximation = new Point[outN];
-    double ** abFactors = countFactorsForTrygonometricApproximation(data, n);
+    double ** abFactors = countFactorsForTrygonometricApproximation(data, n, m);
     double xi = a;
 
     for (int i = 0; i < outN; xi += step, i++) {
         approximation[i].x = xi;
-        approximation[i].y = trygonometricApproximation(abFactors, n, data, approximation[i].x);
+        approximation[i].y = trygonometricApproximation(abFactors, m, approximation[i].x);
     }
     
     cout << "Aproksymacja: \n";
     sendPlotToFile(approximation, outN, "out.dat", true);
-
-    // ofstream outputFile;
-    // outputFile.open("out.dat", ios::trunc);
-    // for(int i = 0; i < outN; i++) {
-    //     outputFile << approximation[i].x << " " << approximation[i].y << endl;
-    //     // cout << "x: " << interpolation[i].x << ", y: " << interpolation[i].y << endl;
-    // }
-    // outputFile.close();
-    // cout << "Skończono pisać do pliku\n";
 
     delete[] data;
 
