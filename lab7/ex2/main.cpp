@@ -89,11 +89,13 @@ int main(int argc, char const *argv[]) {
     }
 
     yE = finalFX(xE);
-    double h = atof(argv[1]);
+    int n = atoi(argv[1]);
+    double h = (xS-xE)/n;
+    cout << "h: " << h << endl;
     cout << "1/h^2: " << 1/pow(h,2) << endl;
 
     // (xk - x0)/h  + 1 = n
-    int n = ((xE-xS)/h) + 1;
+    // int n = ((xE-xS)/h) + 1;
 
     Point startPoint = Point(xS, yS);
     Point endPoint = Point(xE, yE);

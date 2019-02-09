@@ -7,10 +7,13 @@
         $(document).ready(() => {
             console.log('works');
             let counter = 0;
+            let pointsCounter = 0;
             let mainTraceActive = false;
+            let pointsTraceActive = false;
 
             var input = document.getElementById('file-upload');
             var mainInput = document.getElementById('main-file-upload');
+            var pointsInput = document.getElementById('points-upload');
 
             var plotPlace = document.getElementById('div1');
 
@@ -26,7 +29,7 @@
 
             $('#plot-button').on('click', () => {
                 counter++;
-                let trace = { x: [], y: [], mode: 'lines+markers', name: 'Funkcja przybliżająca' };
+                let trace = { x: [], y: [], mode: 'lines', name: 'Funkcja przybliżająca' }; // lines+markers
 
                 var file = input.files[0];
                 reader.readAsText(file);
@@ -63,10 +66,46 @@
                 allTraces.splice(0, allTraces.length);
             })
 
+            $('#points-button').on('click', () => {
+                if (pointsTraceActive) { return; }
+
+                let trace = { x: [], y: [], mode: 'markers', name: 'Zadane węzły' }; // lines+markers
+
+                var file = pointsInput.files[0];
+                reader.readAsText(file);
+                reader.onload = () => {
+                    var text = reader.result;
+                    var arr = text.split("\n");
+                    let tmp;
+                    for (let pair of arr) {
+                        tmp = pair.split(" ");
+                        trace.x.push(tmp[0]);
+                        trace.y.push(tmp[1]);
+                    }
+                    pointsTraceActive = true;
+                    // allTraces.push(trace);
+
+                    // console.log(data);
+                    // var data = [trace];
+
+                    Plotly.addTraces(plotPlace, trace, 1);
+                    // console.log(Plotly);
+                }
+            })
+
+            $('#reset-points-button').on('click', () => {
+                if (pointsTraceActive) {
+                    Plotly.deleteTraces(plotPlace, 1);
+                    pointsTraceActive = false;
+                }
+            })
+
 
             $('#main-plot-button').on('click', () => {
                 // counter++;
-                let trace = { x: [], y: [], mode: 'lines+markers', name: 'Funkcja macierzysta' };
+                if (mainTraceActive) { return; }
+
+                let trace = { x: [], y: [], mode: 'lines', name: 'Funkcja macierzysta' };
 
                 var file = mainInput.files[0];
                 reader.readAsText(file);
@@ -122,6 +161,14 @@
         <input id="main-file-upload" type="file">
         <button id="main-plot-button" type="button" class="my-button">Plot main trace!</button>
         <button id="main-reset-button" type="button" class="my-button">Remove main trace</button>
+    </div>
+
+    <div class="space"></div>
+    
+    <div>
+        <input id="points-upload" type="file">
+        <button id="points-button" type="button" class="my-button">Display points!</button>
+        <button id="reset-points-button" type="button" class="my-button">Remove points</button>
     </div>
 
     <div class="space"></div>

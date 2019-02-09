@@ -90,7 +90,7 @@ QuadraticSpline * quadraticSplines(Point *data, int n, double D0);
 
 // aproksymacje
 PolynomialFunction polynomialRegression(Point *data, int n, int m);
-double ** countFactorsForTrygonometricApproximation(Point * dataPoints, int nPoints, int degree);
-double trygonometricApproximation(double *factorsTable[], int degree, double x);
+double ** countFactorsForTrygonometricApproximation(Point * dataPoints, int nPoints, int degree, double rangeM);
+double trygonometricApproximation(double *factorsTable[], int nPoints, double rangeM, double x);
 
 #endif

@@ -2,6 +2,8 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#define _USE_MATH_DEFINES
+#include <tgmath.h>
 #include "interpolation-lib.h"
 #include "matrix-lib.h"
 using namespace std;
@@ -262,33 +264,44 @@ QuadraticSpline * quadraticSplines(Point *data, int n, double D0) {
 }
 
 PolynomialFunction polynomialRegression(Point *data, int n, int m) {
-    double **matrix = new double*[m];
-    for (int i = 0; i < m; i++) {
-        matrix[i] = new double[m];
+    // dla m+1 = n - Interpolacja
+    // dla m+1 <= n-1 (m <= n-2) - aproksymacja
+    if (m > n-2) {
+        cout << "m jest za duze, zostanie zmniejszone do minimum" << endl;
+        m = n-2;
+    }
+
+    int nSize = n+1, mSize = m+1;
+
+    double **matrix = new double*[mSize];
+    for (int i = 0; i < mSize; i++) {
+        matrix[i] = new double[mSize];
     }
 
     // tablica sum po x od 0 do 2m, dla skrocenia obliczen
-    double *xSums = new double[2*m];
+    int xSumsSize = (2*m)+1;
+    double *xSums = new double[xSumsSize];
     xSums[0] = 1;
-    for (int i = 1; i < 2*m; i++) {
+    for (int i = 1; i < xSumsSize; i++) {
         xSums[i] = 0;
-        for (int j = 0; j < n; j++) {
+        for (int j = 0; j < nSize; j++) {
             xSums[i] += pow(data[j].x, i);
         }
     }
 
     // wypelniamy macierz wspolczynnikow
-    for (int i = 0; i < m; i++) {
-        for (int j = 0; j < m; j++) {
+    for (int i = 0; i < mSize; i++) {
+        for (int j = 0; j < mSize; j++) {
             matrix[i][j] = xSums[i+j];
         }
     }
+    matrix[0][0] = nSize;
 
     // wypelniamy rozwiazania, czyli sumy y*x^i
-    double *freeVector = new double[m];
-    for (int i = 0; i < m; i++) {
+    double *freeVector = new double[mSize];
+    for (int i = 0; i < mSize; i++) {
         freeVector[i] = 0;
-        for (int j = 0; j < m; j++) {
+        for (int j = 0; j < nSize; j++) {
             freeVector[i] += data[j].y * pow(data[j].x, i);
         }
     }
@@ -296,12 +309,12 @@ PolynomialFunction polynomialRegression(Point *data, int n, int m) {
     // double *initVector = new double[n];
     // for (int i = 0; i < n; i++) { initVector[i] = 1; }
     // double *xVector = SORAlgorithm(m, (const double**)matrixinitVector, freeVector, 0.1, 1, 1);
-    double *xVector = gaussElimination(m, m, matrix, freeVector);
+    double *xVector = gaussElimination(mSize, mSize, matrix, freeVector);
     // double *xVector = jacobiAlgorithm(m, (const double**)matrix, initVector, freeVector, 1, 1);
 
-    PolynomialFunction aproximation = PolynomialFunction(n, xVector);
+    PolynomialFunction aproximation = PolynomialFunction(mSize, xVector);
 
-    for (int i = 0; i < m; i++) {
+    for (int i = 0; i < mSize; i++) {
         delete[] matrix[i];
     }
     delete[] matrix;
@@ -311,39 +324,85 @@ PolynomialFunction polynomialRegression(Point *data, int n, int m) {
     return aproximation;
 }
 
-double ** countFactorsForTrygonometricApproximation(Point *dataPoints, int nPoints, int degree) {
-    double **factorsTable = new double*[2];
-    factorsTable[0] = new double[degree+1];
-    factorsTable[1] = new double[degree+1];
+double ** countFactorsForTrygonometricApproximation(Point *dataPoints, int nPoints, int degree, double rangeM) {
+    // dataPoints musi byc przesuniete o 0.5pi
+    // range jest bez PI
+    if (nPoints%2 == 0) { // parzysta ilosc punktow
+        if (degree > ((nPoints-2)/2)) {
+            degree = (nPoints-2)/2;
+            cout << "Stopien wielomianu został obniony do minimalnej wartości " << degree << endl;
+        }
+    } else { // nieparzysta ilosc punktow
+        if ( degree > ( (nPoints-1)/2 ) ) {
+            degree = (nPoints-1)/2;
+            cout << "Stopien wielomianu został obniony do minimalnej wartości " << degree << endl;
+        }
+    }
 
-    for (int i = 0; i <= degree; i++) {
+    double **factorsTable = new double*[2];
+    int aSize = degree+2;
+    int bSize = degree;
+    factorsTable[0] = new double[aSize];
+    factorsTable[1] = new double[bSize+1];
+
+    // w pierwszej komorce wspolczynnikow b jest przechowywany stopien wielomianu
+    factorsTable[1][0] = degree;
+
+    // dodac k * pi/I * xi
+
+    // wyliczanie a0
+    factorsTable[0][0] = 0;
+    for (int j = 0; j < nPoints; j++) {
+        factorsTable[0][0] += ( dataPoints[j].y );
+    }
+    factorsTable[0][0] *= 2;
+    factorsTable[0][0] /= nPoints;
+
+    for (int i = 1; i <= bSize; i++) {
         // coś * 2 i potem przez n
         factorsTable[0][i] = 0; factorsTable[1][i] = 0;
         for (int j = 0; j < nPoints; j++) {
             // punkt a
-            factorsTable[0][i] += ( dataPoints[j].y * cos( i*dataPoints[j].x ) );
+            factorsTable[0][i] += ( dataPoints[j].y * cos( (i*dataPoints[j].x)/rangeM ) );
             // punkt b
-            factorsTable[1][i] += ( dataPoints[j].y * sin( i*dataPoints[j].x ) );
+            factorsTable[1][i] += ( dataPoints[j].y * sin( (i*dataPoints[j].x)/rangeM ) );
         }
         factorsTable[0][i] *= 2; factorsTable[1][i] *= 2;
-
         factorsTable[0][i] /= nPoints; factorsTable[1][i] /= nPoints;
     }
+
+    // wyliczamy a(m+1)
+    int index = aSize-1;
+    factorsTable[0][index] = 0;
+    for (int j = 0; j < nPoints; j++) {
+        factorsTable[0][index] += ( dataPoints[j].y * cos((index * dataPoints[j].x)/rangeM) );
+    }
+    factorsTable[0][index] *= 2;
+    factorsTable[0][index] /= nPoints;
 
     return factorsTable;
 }
 
-double trygonometricApproximation(double *factorsTable[], int degree, double x) {
+double trygonometricApproximation(double *factorsTable[], int nPoints, double rangeM, double x) {
     double *aFactors = factorsTable[0];
     double *bFactors = factorsTable[1];
+    int degree = bFactors[0];
+
     double outVal = aFactors[0]/2;
 
     double aSum = 0;
     double bSum = 0;
+    double xTmp;
     for (int i = 1; i <= degree; i++) {
-        aSum += (aFactors[i] * cos(i * x));
-        bSum += (bFactors[i] * sin(i * x));
+        xTmp = (i * x)/rangeM;
+        aSum += (aFactors[i] * cos(xTmp));
+        bSum += (bFactors[i] * sin(xTmp));
     }
+
+    if (nPoints%2 == 0) {
+        aSum += (aFactors[degree+1] * cos( ((degree+1) * x)/rangeM ))/2;
+    }
+
     outVal += aSum + bSum;
 
     return outVal;
