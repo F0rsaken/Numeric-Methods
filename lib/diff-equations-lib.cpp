@@ -42,44 +42,62 @@ void rungeKuttyMethodDiff(PointDifferential points[], double h, int n, double yP
 }
 
 Point * MRSAlgorithm(double h, int n, Point startP, Point endP) {
-    double * upper = new double[n-1];
-    double * lower = new double[n-1];
-    double * a = new double[n];
-    double * d = new double[n];
-    Point *outPoints = new Point[n];
+    int nPoints = n+1;
+    double * upper = new double[nPoints-1];
+    double * lower = new double[nPoints-1];
+    double * mid = new double[nPoints];
+    double * d = new double[nPoints];
+    Point *outPoints = new Point[nPoints];
 
     double factor = 1/pow(h, 2);
 
-    for (int i = 0; i < n-1; i++) {
+    for (int i = 0; i < nPoints-1; i++) {
         upper[i] = factor;
         lower[i] = factor;
     }
     upper[0] = 0;
-    lower[n-2] = 0;
+    lower[nPoints-2] = 0;
 
     outPoints[0].x = startP.x;
-    outPoints[n - 1].x = endP.x;
-    for (int i = 1; i < n-1; i++) { outPoints[i].x = outPoints[i-1].x + h; }
+    outPoints[nPoints - 1].x = endP.x;
+    for (int i = 1; i < nPoints-1; i++) { outPoints[i].x = outPoints[i-1].x + h; }
 
     d[0] = startP.y;
-    d[n-1] = endP.y;
-    for (int i = 1; i < n-1; i++) {
-        a[i] = 4 - (2*factor);
+    d[nPoints-1] = endP.y;
+    for (int i = 1; i < nPoints-1; i++) {
+        mid[i] = 4 - (2*factor);
         d[i] = 4*outPoints[i].x;
     }
 
-    a[0] = 1;
-    a[n-1] = 1;
+    mid[0] = 1;
+    mid[nPoints-1] = 1;
 
-    double *y = thomasAlgorithm(lower, a, upper, d, n);
+    double ** normalMatrix = new double*[nPoints];
+    for (int i = 0; i < nPoints; i++) { normalMatrix[i] = new double[nPoints]; }
 
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < nPoints; i++) {
+        normalMatrix[i][i] = mid[i];
+
+        if (i != 0 && i != nPoints-1) {
+            normalMatrix[i][i-1] = lower[i-1];
+            normalMatrix[i][i+1] = upper[i];
+        } else if (i == 0) {
+            normalMatrix[i][i+1] = upper[i];
+        } else if (i == nPoints-1) {
+            normalMatrix[i][i+1] = upper[i-1];
+        }
+    }
+
+    double *y = gaussElimination(nPoints, nPoints, normalMatrix, d);
+
+    for (int i = 0; i < nPoints; i++) {
         outPoints[i].y = y[i];
+        // cout << "[x]: " << outPoints[i].x << " [y]: " << outPoints[i].y << endl;
     }
 
     delete[] upper;
     delete[] lower;
-    delete[] a;
+    delete[] mid;
     delete[] d;
 
     return outPoints;

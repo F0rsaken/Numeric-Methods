@@ -46,29 +46,14 @@ Point* getDataPoints(int n) {
 
     for (int i = 0; i < n; i++) {
         data[i].y = fX(data[i].x);
-        data[i].x += offset; 
+        // data[i].x += offset;
     }
 
-    // double oldA = a, oldB = b;
-    // a += offset; b += offset;
-
-    // double singleStep = (b-a)/(n-1);
-    // Point *data = new Point[n];
-    // data[0].x = a;
-    // data[n-1].x = b;
-    // // cout << "a, b, step: " << data[0].x << "; " << data[n-1].x << "; " << singleStep << "\n\n";
-    // for (int i = 1; i < n-1; i++) {
-    //     data[i].x = data[i-1].x + singleStep;
-    // }
-
-    // for (int i = 0; i < n; i++) {
-    //     data[i].y = fX(data[i].x);
-    //     // cout << "x[" << i << "]: " << data[i].x << ",  " << "y[" << i << "]: " << data[i].y << endl;
-    // }
-
-    // a = oldA; b = oldB;
-
     sendPlotToFile(data, n, "points.dat", true);
+
+    for (int i = 0; i < n; i++) {
+        data[i].x += offset;
+    }
 
     return data;
 }

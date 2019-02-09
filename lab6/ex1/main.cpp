@@ -52,7 +52,7 @@ Point* getDataPoints(int n) {
 
 /** 
  * Argumenty:
- *  n - ilość dla n+1 punktow
+ *  n+1 - ilość zadanych punktow
  *  m - stopień wielomianu
 */
 
@@ -63,16 +63,17 @@ int main(int argc, char const *argv[]) {
     }
 
     // int printMode = atoi(argv[1]); // 0 - cout, 1 - do pliku
-    int n = atoi(argv[1]);
+    int nSize = atoi(argv[1]);
     int m = atoi(argv[2]);
-    int nSize = n+1;
+    int n = nSize-1;
 
     if (m > n-2) {
-        cout << "Wartość m musi być mniejsza od wartości n-1!\n";
+        cout << "Wartość m moze byc maksymalnie rowna " << n-2 << endl;
         return 0;
     }
 
     Point *data = getDataPoints(nSize);
+    sendPlotToFile(data, nSize, "points.dat", true);
     PolynomialFunction aproximatedFunc = polynomialRegression(data, n, m);
     
     int outN = ((data[nSize - 1].x - data[0].x) / step) + 1;

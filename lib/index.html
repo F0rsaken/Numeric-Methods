@@ -53,23 +53,21 @@
             })
 
             $('#reset-button').on('click', () => {
-                if (mainTraceActive) {
-                    for (let index in allTraces) {
-                        Plotly.deleteTraces(plotPlace, +index + 1);
-                    }
-                } else {
-                    for (let index in allTraces) {
-                        Plotly.deleteTraces(plotPlace, +index);
-                    }
-                }
+                let delIndex = allTraces.length - 1;
+                if (delIndex < 0) return;
+                
+                if (mainTraceActive) delIndex++;
+                if (pointsTraceActive) delIndex++;
 
-                allTraces.splice(0, allTraces.length);
+                Plotly.deleteTraces(plotPlace, delIndex);
+
+                allTraces.splice(allTraces.length-1, 1);
             })
 
             $('#points-button').on('click', () => {
-                if (pointsTraceActive) { return; }
+                if (pointsTraceActive || !mainTraceActive) { return; }
 
-                let trace = { x: [], y: [], mode: 'markers', name: 'Zadane węzły' }; // lines+markers
+                let trace = { x: [], y: [], mode: 'markers', name: 'Zadane węzły', marker: { size: 10 } }; // lines+markers
 
                 var file = pointsInput.files[0];
                 reader.readAsText(file);
@@ -83,13 +81,8 @@
                         trace.y.push(tmp[1]);
                     }
                     pointsTraceActive = true;
-                    // allTraces.push(trace);
-
-                    // console.log(data);
-                    // var data = [trace];
 
                     Plotly.addTraces(plotPlace, trace, 1);
-                    // console.log(Plotly);
                 }
             })
 
@@ -120,11 +113,8 @@
                     }
 
                     mainTraceActive = true;
-                    // var data = [trace];
 
                     Plotly.addTraces(plotPlace, trace, 0);
-                    // .plot(plotPlace, data, layout);
-                    // console.log(Plotly);
                 }
             })
 
@@ -176,6 +166,6 @@
     <div>
         <input id="file-upload" type="file">
         <button id="plot-button" type="button" class="my-button">Plot it!</button>
-        <button id="reset-button" type="button" class="my-button">Remove traces</button>
+        <button id="reset-button" type="button" class="my-button">Remove trace</button>
     </div>
 </body>
